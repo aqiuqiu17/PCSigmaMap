@@ -1,0 +1,1356 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="css/leaflet.css">
+    <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+    <link rel="stylesheet" href="css/qgis2web.css">
+    <link rel="stylesheet" href="css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="css/leaflet-search.css">
+    <link rel="stylesheet" href="css/filter.css">
+    <link rel="stylesheet" href="css/nouislider.min.css">
+    <style>
+        html,
+        body,
+        #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+    <title></title>
+</head>
+
+<body>
+    <div id="map">
+    </div>
+    <script src="js/qgis2web_expressions.js"></script>
+    <script src="js/leaflet.js"></script>
+    <script src="js/L.Control.Layers.Tree.min.js"></script>
+    <script src="js/leaflet.rotatedMarker.js"></script>
+    <script src="js/leaflet.pattern.js"></script>
+    <script src="js/leaflet-hash.js"></script>
+    <script src="js/Autolinker.min.js"></script>
+    <script src="js/rbush.min.js"></script>
+    <script src="js/labelgun.min.js"></script>
+    <script src="js/labels.js"></script>
+    <script src="js/leaflet-search.js"></script>
+    <script src="js/tailDT.js"></script>
+    <script src="js/nouislider.min.js"></script>
+    <script src="js/wNumb.js"></script>
+    <script src="data/Risiko2030_2.js"></script>
+    <script src="data/Risiko2023_3.js"></script>
+    <script src="data/Kerentanan2030_4.js"></script>
+    <script src="data/Kerentanan2023_5.js"></script>
+    <script>
+        var map = L.map('map', {
+            zoomControl: false, maxZoom: 28, minZoom: 1
+        }).fitBounds([[-19.73426506112495, 93.82070777742511], [14.801832996124988, 142.17124505757502]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({ truncate: { length: 30, location: 'smart' } });
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var rows = tempDiv.querySelectorAll('tr');
+            for (var i = 0; i < rows.length; i++) {
+                var td = rows[i].querySelector('td.visible-with-data');
+                var key = td ? td.id : '';
+                if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                    rows[i].parentNode.removeChild(rows[i]);
+                }
+            }
+            return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+        function addClassToPopupIfMedia(content, popup) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            if (tempDiv.querySelector('td img')) {
+                popup._contentNode.classList.add('media');
+                // Delay to force the redraw
+                setTimeout(function () {
+                    popup.update();
+                }, 10);
+            } else {
+                popup._contentNode.classList.remove('media');
+            }
+        }
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_GoogleMaps_0');
+        map.getPane('pane_GoogleMaps_0').style.zIndex = 400;
+        var layer_GoogleMaps_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleMaps_0',
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+        });
+        layer_GoogleMaps_0;
+        map.addLayer(layer_GoogleMaps_0);
+        map.createPane('pane_F4Map2D_1');
+        map.getPane('pane_F4Map2D_1').style.zIndex = 401;
+        var layer_F4Map2D_1 = L.tileLayer('https://tile1.f4map.com/tiles/f4_2d/{z}/{x}/{y}.png', {
+            pane: 'pane_F4Map2D_1',
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+        });
+        layer_F4Map2D_1;
+        map.addLayer(layer_F4Map2D_1);
+        function pop_Risiko2030_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Risiko 2030</th>\
+                        <td class="visible-with-data" id="Risiko 2030">' + (feature.properties['Risiko 2030'] !== null ? autolinker.link(feature.properties['Risiko 2030'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Kabupaten/Kota</th>\
+                        <td class="visible-with-data" id="Kabupaten/Kota">' + (feature.properties['Kabupaten/Kota'] !== null ? autolinker.link(feature.properties['Kabupaten/Kota'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+            layer.on('popupopen', function (e) {
+                addClassToPopupIfMedia(content, e.popup);
+            });
+            layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Risiko2030_2_0(feature) {
+            if (feature.properties['Risiko 2030'] >= 0.000000 && feature.properties['Risiko 2030'] <= 0.040000) {
+                return {
+                    pane: 'pane_Risiko2030_2',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(43,131,186,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Risiko 2030'] >= 0.040000 && feature.properties['Risiko 2030'] <= 0.160000) {
+                return {
+                    pane: 'pane_Risiko2030_2',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(171,221,164,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Risiko 2030'] >= 0.160000 && feature.properties['Risiko 2030'] <= 0.360000) {
+                return {
+                    pane: 'pane_Risiko2030_2',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(255,255,191,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Risiko 2030'] >= 0.360000 && feature.properties['Risiko 2030'] <= 0.600000) {
+                return {
+                    pane: 'pane_Risiko2030_2',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(253,174,97,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Risiko 2030'] >= 0.600000 && feature.properties['Risiko 2030'] <= 1.000000) {
+                return {
+                    pane: 'pane_Risiko2030_2',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(215,25,28,1.0)',
+                    interactive: true,
+                }
+            }
+        }
+        map.createPane('pane_Risiko2030_2');
+        map.getPane('pane_Risiko2030_2').style.zIndex = 402;
+        map.getPane('pane_Risiko2030_2').style['mix-blend-mode'] = 'normal';
+        var layer_Risiko2030_2 = new L.geoJson(json_Risiko2030_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Risiko2030_2',
+            layerName: 'layer_Risiko2030_2',
+            pane: 'pane_Risiko2030_2',
+            onEachFeature: pop_Risiko2030_2,
+            style: style_Risiko2030_2_0,
+        });
+        bounds_group.addLayer(layer_Risiko2030_2);
+        map.addLayer(layer_Risiko2030_2);
+        function pop_Risiko2023_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Kabupaten/Kota</th>\
+                        <td class="visible-with-data" id="Kabupaten/Kota">' + (feature.properties['Kabupaten/Kota'] !== null ? autolinker.link(feature.properties['Kabupaten/Kota'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Risiko 2023</th>\
+                        <td class="visible-with-data" id="Risiko 2023">' + (feature.properties['Risiko 2023'] !== null ? autolinker.link(feature.properties['Risiko 2023'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+            layer.on('popupopen', function (e) {
+                addClassToPopupIfMedia(content, e.popup);
+            });
+            layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Risiko2023_3_0(feature) {
+            if (feature.properties['Risiko 2023'] >= 0.000000 && feature.properties['Risiko 2023'] <= 0.040000) {
+                return {
+                    pane: 'pane_Risiko2023_3',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(43,131,186,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Risiko 2023'] >= 0.040000 && feature.properties['Risiko 2023'] <= 0.150000) {
+                return {
+                    pane: 'pane_Risiko2023_3',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(171,221,164,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Risiko 2023'] >= 0.150000 && feature.properties['Risiko 2023'] <= 0.310000) {
+                return {
+                    pane: 'pane_Risiko2023_3',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(255,255,191,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Risiko 2023'] >= 0.310000 && feature.properties['Risiko 2023'] <= 0.600000) {
+                return {
+                    pane: 'pane_Risiko2023_3',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(253,174,97,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Risiko 2023'] >= 0.600000 && feature.properties['Risiko 2023'] <= 1.000000) {
+                return {
+                    pane: 'pane_Risiko2023_3',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(215,25,28,1.0)',
+                    interactive: true,
+                }
+            }
+        }
+        map.createPane('pane_Risiko2023_3');
+        map.getPane('pane_Risiko2023_3').style.zIndex = 403;
+        map.getPane('pane_Risiko2023_3').style['mix-blend-mode'] = 'normal';
+        var layer_Risiko2023_3 = new L.geoJson(json_Risiko2023_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Risiko2023_3',
+            layerName: 'layer_Risiko2023_3',
+            pane: 'pane_Risiko2023_3',
+            onEachFeature: pop_Risiko2023_3,
+            style: style_Risiko2023_3_0,
+        });
+        bounds_group.addLayer(layer_Risiko2023_3);
+        map.addLayer(layer_Risiko2023_3);
+        function pop_Kerentanan2030_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Kabupaten/Kota</th>\
+                        <td class="visible-with-data" id="Kabupaten/Kota">' + (feature.properties['Kabupaten/Kota'] !== null ? autolinker.link(feature.properties['Kabupaten/Kota'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Kerentanan 2030</th>\
+                        <td class="visible-with-data" id="Kerentanan 2030">' + (feature.properties['Kerentanan 2030'] !== null ? autolinker.link(feature.properties['Kerentanan 2030'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+            layer.on('popupopen', function (e) {
+                addClassToPopupIfMedia(content, e.popup);
+            });
+            layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Kerentanan2030_4_0(feature) {
+            if (feature.properties['Kerentanan 2030'] >= 0.000000 && feature.properties['Kerentanan 2030'] <= 0.540000) {
+                return {
+                    pane: 'pane_Kerentanan2030_4',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(43,131,186,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Kerentanan 2030'] >= 0.540000 && feature.properties['Kerentanan 2030'] <= 0.620000) {
+                return {
+                    pane: 'pane_Kerentanan2030_4',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(171,221,164,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Kerentanan 2030'] >= 0.620000 && feature.properties['Kerentanan 2030'] <= 0.680000) {
+                return {
+                    pane: 'pane_Kerentanan2030_4',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(255,255,191,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Kerentanan 2030'] >= 0.680000 && feature.properties['Kerentanan 2030'] <= 0.720000) {
+                return {
+                    pane: 'pane_Kerentanan2030_4',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(253,174,97,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Kerentanan 2030'] >= 0.720000 && feature.properties['Kerentanan 2030'] <= 0.900000) {
+                return {
+                    pane: 'pane_Kerentanan2030_4',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(215,25,28,1.0)',
+                    interactive: true,
+                }
+            }
+        }
+        map.createPane('pane_Kerentanan2030_4');
+        map.getPane('pane_Kerentanan2030_4').style.zIndex = 404;
+        map.getPane('pane_Kerentanan2030_4').style['mix-blend-mode'] = 'normal';
+        var layer_Kerentanan2030_4 = new L.geoJson(json_Kerentanan2030_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Kerentanan2030_4',
+            layerName: 'layer_Kerentanan2030_4',
+            pane: 'pane_Kerentanan2030_4',
+            onEachFeature: pop_Kerentanan2030_4,
+            style: style_Kerentanan2030_4_0,
+        });
+        bounds_group.addLayer(layer_Kerentanan2030_4);
+        map.addLayer(layer_Kerentanan2030_4);
+        function pop_Kerentanan2023_5(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Kerentanan 2023</th>\
+                        <td class="visible-with-data" id="Kerentanan 2023">' + (feature.properties['Kerentanan 2023'] !== null ? autolinker.link(feature.properties['Kerentanan 2023'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Kabupaten/Kota</th>\
+                        <td class="visible-with-data" id="Kabupaten/Kota">' + (feature.properties['Kabupaten/Kota'] !== null ? autolinker.link(feature.properties['Kabupaten/Kota'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+            layer.on('popupopen', function (e) {
+                addClassToPopupIfMedia(content, e.popup);
+            });
+            layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Kerentanan2023_5_0(feature) {
+            if (feature.properties['Kerentanan 2023'] >= 0.000000 && feature.properties['Kerentanan 2023'] <= 0.540000) {
+                return {
+                    pane: 'pane_Kerentanan2023_5',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(43,131,186,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Kerentanan 2023'] >= 0.540000 && feature.properties['Kerentanan 2023'] <= 0.610000) {
+                return {
+                    pane: 'pane_Kerentanan2023_5',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(171,221,164,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Kerentanan 2023'] >= 0.610000 && feature.properties['Kerentanan 2023'] <= 0.670000) {
+                return {
+                    pane: 'pane_Kerentanan2023_5',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(255,255,191,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Kerentanan 2023'] >= 0.670000 && feature.properties['Kerentanan 2023'] <= 0.720000) {
+                return {
+                    pane: 'pane_Kerentanan2023_5',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(253,174,97,1.0)',
+                    interactive: true,
+                }
+            }
+            if (feature.properties['Kerentanan 2023'] >= 0.720000 && feature.properties['Kerentanan 2023'] <= 0.860000) {
+                return {
+                    pane: 'pane_Kerentanan2023_5',
+                    opacity: 1,
+                    color: 'rgba(35,35,35,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0,
+                    fill: true,
+                    fillOpacity: 1,
+                    fillColor: 'rgba(215,25,28,1.0)',
+                    interactive: true,
+                }
+            }
+        }
+        map.createPane('pane_Kerentanan2023_5');
+        map.getPane('pane_Kerentanan2023_5').style.zIndex = 405;
+        map.getPane('pane_Kerentanan2023_5').style['mix-blend-mode'] = 'normal';
+        var layer_Kerentanan2023_5 = new L.geoJson(json_Kerentanan2023_5, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Kerentanan2023_5',
+            layerName: 'layer_Kerentanan2023_5',
+            pane: 'pane_Kerentanan2023_5',
+            onEachFeature: pop_Kerentanan2023_5,
+            style: style_Kerentanan2023_5_0,
+        });
+        bounds_group.addLayer(layer_Kerentanan2023_5);
+        map.addLayer(layer_Kerentanan2023_5);
+        setBounds();
+        map.addControl(new L.Control.Search({
+            layer: layer_Kerentanan2023_5,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'Kabupaten/Kota'
+        }));
+        document.getElementsByClassName('search-button')[0].className +=
+            ' fa fa-binoculars';
+        var mapDiv = document.getElementById('map');
+        var row = document.createElement('div');
+        row.className = "row";
+        row.id = "all";
+        row.style.height = "100%";
+        var col1 = document.createElement('div');
+        col1.className = "col9";
+        col1.id = "mapWindow";
+        col1.style.height = "99%";
+        col1.style.width = "80%";
+        col1.style.display = "inline-block";
+        var col2 = document.createElement('div');
+        col2.className = "col3";
+        col2.id = "menu";
+        col2.style.display = "inline-block";
+        mapDiv.parentNode.insertBefore(row, mapDiv);
+        document.getElementById("all").appendChild(col1);
+        document.getElementById("all").appendChild(col2);
+        col1.appendChild(mapDiv)
+        var Filters = { "Risiko 2023": "real", "Risiko 2030": "real", "Kerentanan 2030": "real", "Kerentanan 2023": "real", "Kabupaten/Kota": "str" };
+        function filterFunc() {
+            map.eachLayer(function (lyr) {
+                if ("options" in lyr && "dataVar" in lyr["options"]) {
+                    features = this[lyr["options"]["dataVar"]].features.slice(0);
+                    try {
+                        for (key in Filters) {
+                            keyS = key.replace(/[^a-zA-Z0-9_]/g, "")
+                            if (Filters[key] == "str" || Filters[key] == "bool") {
+                                var selection = [];
+                                var options = document.getElementById("sel_" + keyS).options
+                                for (var i = 0; i < options.length; i++) {
+                                    if (options[i].selected) selection.push(options[i].value);
+                                }
+                                try {
+                                    if (key in features[0].properties) {
+                                        for (i = features.length - 1;
+                                            i >= 0; --i) {
+                                            if (selection.indexOf(
+                                                features[i].properties[key]) < 0
+                                                && selection.length > 0) {
+                                                features.splice(i, 1);
+                                            }
+                                        }
+                                    }
+                                } catch (err) {
+                                }
+                            }
+                            if (Filters[key] == "int") {
+                                sliderVals = document.getElementById(
+                                    "div_" + keyS).noUiSlider.get();
+                                try {
+                                    if (key in features[0].properties) {
+                                        for (i = features.length - 1; i >= 0; --i) {
+                                            if (parseInt(features[i].properties[key])
+                                                < sliderVals[0]
+                                                || parseInt(features[i].properties[key])
+                                                > sliderVals[1]) {
+                                                features.splice(i, 1);
+                                            }
+                                        }
+                                    }
+                                } catch (err) {
+                                }
+                            }
+                            if (Filters[key] == "real") {
+                                sliderVals = document.getElementById(
+                                    "div_" + keyS).noUiSlider.get();
+                                try {
+                                    if (key in features[0].properties) {
+                                        for (i = features.length - 1; i >= 0; --i) {
+                                            if (features[i].properties[key]
+                                                < sliderVals[0]
+                                                || features[i].properties[key]
+                                                > sliderVals[1]) {
+                                                features.splice(i, 1);
+                                            }
+                                        }
+                                    }
+                                } catch (err) {
+                                }
+                            }
+                            if (Filters[key] == "date"
+                                || Filters[key] == "datetime"
+                                || Filters[key] == "time") {
+                                try {
+                                    if (key in features[0].properties) {
+                                        HTMLkey = key.replace(/[&\/\\#,+()$~%.'":*?<>{} ]/g, '');
+                                        startdate = document.getElementById("dat_" +
+                                            HTMLkey + "_date1").value.replace(" ", "T");
+                                        enddate = document.getElementById("dat_" +
+                                            HTMLkey + "_date2").value.replace(" ", "T");
+                                        for (i = features.length - 1; i >= 0; --i) {
+                                            if (features[i].properties[key] < startdate
+                                                || features[i].properties[key] > enddate) {
+                                                features.splice(i, 1);
+                                            }
+                                        }
+                                    }
+                                } catch (err) {
+                                }
+                            }
+                        }
+                    } catch (err) {
+                    }
+                    this[lyr["options"]["layerName"]].clearLayers();
+                    this[lyr["options"]["layerName"]].addData(features);
+                }
+            })
+        }
+        document.getElementById("menu").appendChild(
+            document.createElement("div"));
+        var div_Risiko2023 = document.createElement("div");
+        div_Risiko2023.id = "div_Risiko2023";
+        div_Risiko2023.className = "slider";
+        document.getElementById("menu").appendChild(div_Risiko2023);
+        var lab_Risiko2023 = document.createElement('div');
+        lab_Risiko2023.innerHTML = 'Risiko 2023: <span id="val_Risiko2023"></span>';
+        lab_Risiko2023.className = 'filterlabel';
+        document.getElementById("menu").appendChild(lab_Risiko2023);
+        var reset_Risiko2023 = document.createElement('div');
+        reset_Risiko2023.innerHTML = 'clear filter';
+        reset_Risiko2023.className = 'filterlabel';
+        lab_Risiko2023.className = 'filterlabel';
+        reset_Risiko2023.onclick = function () {
+            sel_Risiko2023.noUiSlider.reset();
+        };
+        document.getElementById("menu").appendChild(reset_Risiko2023);
+        var sel_Risiko2023 = document.getElementById('div_Risiko2023');
+        noUiSlider.create(sel_Risiko2023, {
+            connect: true,
+            start: [0.01, 1.0],
+            range: {
+                min: 0.01,
+                max: 1.0
+            }
+        });
+        sel_Risiko2023.noUiSlider.on('update', function (values) {
+            val_Risiko2023 = document.getElementById('val_Risiko2023');
+            val_Risiko2023.innerHTML = values.join(' - ');
+            filterFunc()
+        });
+        document.getElementById("menu").appendChild(
+            document.createElement("div"));
+        var div_Risiko2030 = document.createElement("div");
+        div_Risiko2030.id = "div_Risiko2030";
+        div_Risiko2030.className = "slider";
+        document.getElementById("menu").appendChild(div_Risiko2030);
+        var lab_Risiko2030 = document.createElement('div');
+        lab_Risiko2030.innerHTML = 'Risiko 2030: <span id="val_Risiko2030"></span>';
+        lab_Risiko2030.className = 'filterlabel';
+        document.getElementById("menu").appendChild(lab_Risiko2030);
+        var reset_Risiko2030 = document.createElement('div');
+        reset_Risiko2030.innerHTML = 'clear filter';
+        reset_Risiko2030.className = 'filterlabel';
+        lab_Risiko2030.className = 'filterlabel';
+        reset_Risiko2030.onclick = function () {
+            sel_Risiko2030.noUiSlider.reset();
+        };
+        document.getElementById("menu").appendChild(reset_Risiko2030);
+        var sel_Risiko2030 = document.getElementById('div_Risiko2030');
+        noUiSlider.create(sel_Risiko2030, {
+            connect: true,
+            start: [0.01, 1.0],
+            range: {
+                min: 0.01,
+                max: 1.0
+            }
+        });
+        sel_Risiko2030.noUiSlider.on('update', function (values) {
+            val_Risiko2030 = document.getElementById('val_Risiko2030');
+            val_Risiko2030.innerHTML = values.join(' - ');
+            filterFunc()
+        });
+        document.getElementById("menu").appendChild(
+            document.createElement("div"));
+        var div_Kerentanan2030 = document.createElement("div");
+        div_Kerentanan2030.id = "div_Kerentanan2030";
+        div_Kerentanan2030.className = "slider";
+        document.getElementById("menu").appendChild(div_Kerentanan2030);
+        var lab_Kerentanan2030 = document.createElement('div');
+        lab_Kerentanan2030.innerHTML = 'Kerentanan 2030: <span id="val_Kerentanan2030"></span>';
+        lab_Kerentanan2030.className = 'filterlabel';
+        document.getElementById("menu").appendChild(lab_Kerentanan2030);
+        var reset_Kerentanan2030 = document.createElement('div');
+        reset_Kerentanan2030.innerHTML = 'clear filter';
+        reset_Kerentanan2030.className = 'filterlabel';
+        lab_Kerentanan2030.className = 'filterlabel';
+        reset_Kerentanan2030.onclick = function () {
+            sel_Kerentanan2030.noUiSlider.reset();
+        };
+        document.getElementById("menu").appendChild(reset_Kerentanan2030);
+        var sel_Kerentanan2030 = document.getElementById('div_Kerentanan2030');
+        noUiSlider.create(sel_Kerentanan2030, {
+            connect: true,
+            start: [0.21, 0.9],
+            range: {
+                min: 0.21,
+                max: 0.9
+            }
+        });
+        sel_Kerentanan2030.noUiSlider.on('update', function (values) {
+            val_Kerentanan2030 = document.getElementById('val_Kerentanan2030');
+            val_Kerentanan2030.innerHTML = values.join(' - ');
+            filterFunc()
+        });
+        document.getElementById("menu").appendChild(
+            document.createElement("div"));
+        var div_Kerentanan2023 = document.createElement("div");
+        div_Kerentanan2023.id = "div_Kerentanan2023";
+        div_Kerentanan2023.className = "slider";
+        document.getElementById("menu").appendChild(div_Kerentanan2023);
+        var lab_Kerentanan2023 = document.createElement('div');
+        lab_Kerentanan2023.innerHTML = 'Kerentanan 2023: <span id="val_Kerentanan2023"></span>';
+        lab_Kerentanan2023.className = 'filterlabel';
+        document.getElementById("menu").appendChild(lab_Kerentanan2023);
+        var reset_Kerentanan2023 = document.createElement('div');
+        reset_Kerentanan2023.innerHTML = 'clear filter';
+        reset_Kerentanan2023.className = 'filterlabel';
+        lab_Kerentanan2023.className = 'filterlabel';
+        reset_Kerentanan2023.onclick = function () {
+            sel_Kerentanan2023.noUiSlider.reset();
+        };
+        document.getElementById("menu").appendChild(reset_Kerentanan2023);
+        var sel_Kerentanan2023 = document.getElementById('div_Kerentanan2023');
+        noUiSlider.create(sel_Kerentanan2023, {
+            connect: true,
+            start: [0.21, 0.86],
+            range: {
+                min: 0.21,
+                max: 0.86
+            }
+        });
+        sel_Kerentanan2023.noUiSlider.on('update', function (values) {
+            val_Kerentanan2023 = document.getElementById('val_Kerentanan2023');
+            val_Kerentanan2023.innerHTML = values.join(' - ');
+            filterFunc()
+        });
+        document.getElementById("menu").appendChild(
+            document.createElement("div"));
+        var div_KabupatenKota = document.createElement('div');
+        div_KabupatenKota.id = "div_KabupatenKota";
+        div_KabupatenKota.className = "filterselect";
+        document.getElementById("menu").appendChild(div_KabupatenKota);
+        sel_KabupatenKota = document.createElement('select');
+        sel_KabupatenKota.multiple = true;
+        sel_KabupatenKota.size = 10;
+        sel_KabupatenKota.id = "sel_KabupatenKota";
+        var KabupatenKota_options_str = "<option value='' unselected></option>";
+        sel_KabupatenKota.onchange = function () { filterFunc() };
+        KabupatenKota_options_str += '<option value="NULL">NULL</option>';
+        KabupatenKota_options_str += '<option value="Aceh Barat">Aceh Barat</option>';
+        KabupatenKota_options_str += '<option value="Aceh Barat Daya">Aceh Barat Daya</option>';
+        KabupatenKota_options_str += '<option value="Aceh Besar">Aceh Besar</option>';
+        KabupatenKota_options_str += '<option value="Aceh Jaya">Aceh Jaya</option>';
+        KabupatenKota_options_str += '<option value="Aceh Selatan">Aceh Selatan</option>';
+        KabupatenKota_options_str += '<option value="Aceh Singkil">Aceh Singkil</option>';
+        KabupatenKota_options_str += '<option value="Aceh Tamiang">Aceh Tamiang</option>';
+        KabupatenKota_options_str += '<option value="Aceh Tengah">Aceh Tengah</option>';
+        KabupatenKota_options_str += '<option value="Aceh Tenggara">Aceh Tenggara</option>';
+        KabupatenKota_options_str += '<option value="Aceh Timur">Aceh Timur</option>';
+        KabupatenKota_options_str += '<option value="Aceh Utara">Aceh Utara</option>';
+        KabupatenKota_options_str += '<option value="Adm. Kep. Seribu">Adm. Kep. Seribu</option>';
+        KabupatenKota_options_str += '<option value="Agam">Agam</option>';
+        KabupatenKota_options_str += '<option value="Alor">Alor</option>';
+        KabupatenKota_options_str += '<option value="Asahan">Asahan</option>';
+        KabupatenKota_options_str += '<option value="Asmat">Asmat</option>';
+        KabupatenKota_options_str += '<option value="Badung">Badung</option>';
+        KabupatenKota_options_str += '<option value="Balangan">Balangan</option>';
+        KabupatenKota_options_str += '<option value="Bandung">Bandung</option>';
+        KabupatenKota_options_str += '<option value="Bandung Barat">Bandung Barat</option>';
+        KabupatenKota_options_str += '<option value="Banggai">Banggai</option>';
+        KabupatenKota_options_str += '<option value="Banggai Kepulauan">Banggai Kepulauan</option>';
+        KabupatenKota_options_str += '<option value="Banggai Laut">Banggai Laut</option>';
+        KabupatenKota_options_str += '<option value="Bangka">Bangka</option>';
+        KabupatenKota_options_str += '<option value="Bangka Barat">Bangka Barat</option>';
+        KabupatenKota_options_str += '<option value="Bangka Selatan">Bangka Selatan</option>';
+        KabupatenKota_options_str += '<option value="Bangka Tengah">Bangka Tengah</option>';
+        KabupatenKota_options_str += '<option value="Bangkalan">Bangkalan</option>';
+        KabupatenKota_options_str += '<option value="Bangli">Bangli</option>';
+        KabupatenKota_options_str += '<option value="Banjar">Banjar</option>';
+        KabupatenKota_options_str += '<option value="Banjarnegara">Banjarnegara</option>';
+        KabupatenKota_options_str += '<option value="Bantaeng">Bantaeng</option>';
+        KabupatenKota_options_str += '<option value="Bantul">Bantul</option>';
+        KabupatenKota_options_str += '<option value="Banyuasin">Banyuasin</option>';
+        KabupatenKota_options_str += '<option value="Banyumas">Banyumas</option>';
+        KabupatenKota_options_str += '<option value="Banyuwangi">Banyuwangi</option>';
+        KabupatenKota_options_str += '<option value="Barito Kuala">Barito Kuala</option>';
+        KabupatenKota_options_str += '<option value="Barito Selatan">Barito Selatan</option>';
+        KabupatenKota_options_str += '<option value="Barito Timur">Barito Timur</option>';
+        KabupatenKota_options_str += '<option value="Barito Utara">Barito Utara</option>';
+        KabupatenKota_options_str += '<option value="Barru">Barru</option>';
+        KabupatenKota_options_str += '<option value="Batang">Batang</option>';
+        KabupatenKota_options_str += '<option value="Batanghari">Batanghari</option>';
+        KabupatenKota_options_str += '<option value="Batu Bara">Batu Bara</option>';
+        KabupatenKota_options_str += '<option value="Bekasi">Bekasi</option>';
+        KabupatenKota_options_str += '<option value="Belitung">Belitung</option>';
+        KabupatenKota_options_str += '<option value="Belitung Timur">Belitung Timur</option>';
+        KabupatenKota_options_str += '<option value="Belu">Belu</option>';
+        KabupatenKota_options_str += '<option value="Bener Meriah">Bener Meriah</option>';
+        KabupatenKota_options_str += '<option value="Bengkalis">Bengkalis</option>';
+        KabupatenKota_options_str += '<option value="Bengkayang">Bengkayang</option>';
+        KabupatenKota_options_str += '<option value="Bengkulu Selatan">Bengkulu Selatan</option>';
+        KabupatenKota_options_str += '<option value="Bengkulu Tengah">Bengkulu Tengah</option>';
+        KabupatenKota_options_str += '<option value="Bengkulu Utara">Bengkulu Utara</option>';
+        KabupatenKota_options_str += '<option value="Berau">Berau</option>';
+        KabupatenKota_options_str += '<option value="Biak Numfor">Biak Numfor</option>';
+        KabupatenKota_options_str += '<option value="Bima">Bima</option>';
+        KabupatenKota_options_str += '<option value="Bintan">Bintan</option>';
+        KabupatenKota_options_str += '<option value="Bireuen">Bireuen</option>';
+        KabupatenKota_options_str += '<option value="Blitar">Blitar</option>';
+        KabupatenKota_options_str += '<option value="Blora">Blora</option>';
+        KabupatenKota_options_str += '<option value="Boalemo">Boalemo</option>';
+        KabupatenKota_options_str += '<option value="Bogor">Bogor</option>';
+        KabupatenKota_options_str += '<option value="Bojonegoro">Bojonegoro</option>';
+        KabupatenKota_options_str += '<option value="Bolaang Mongondow">Bolaang Mongondow</option>';
+        KabupatenKota_options_str += '<option value="Bolaang Mongondow Selatan">Bolaang Mongondow Selatan</option>';
+        KabupatenKota_options_str += '<option value="Bolaang Mongondow Timur">Bolaang Mongondow Timur</option>';
+        KabupatenKota_options_str += '<option value="Bolaang Mongondow Utara">Bolaang Mongondow Utara</option>';
+        KabupatenKota_options_str += '<option value="Bombana">Bombana</option>';
+        KabupatenKota_options_str += '<option value="Bondowoso">Bondowoso</option>';
+        KabupatenKota_options_str += '<option value="Bone">Bone</option>';
+        KabupatenKota_options_str += '<option value="Bone Bolango">Bone Bolango</option>';
+        KabupatenKota_options_str += '<option value="Boven Digoel">Boven Digoel</option>';
+        KabupatenKota_options_str += '<option value="Boyolali">Boyolali</option>';
+        KabupatenKota_options_str += '<option value="Brebes">Brebes</option>';
+        KabupatenKota_options_str += '<option value="Buleleng">Buleleng</option>';
+        KabupatenKota_options_str += '<option value="Bulukumba">Bulukumba</option>';
+        KabupatenKota_options_str += '<option value="Bulungan">Bulungan</option>';
+        KabupatenKota_options_str += '<option value="Bungo">Bungo</option>';
+        KabupatenKota_options_str += '<option value="Buol">Buol</option>';
+        KabupatenKota_options_str += '<option value="Buru">Buru</option>';
+        KabupatenKota_options_str += '<option value="Buru Selatan">Buru Selatan</option>';
+        KabupatenKota_options_str += '<option value="Buton">Buton</option>';
+        KabupatenKota_options_str += '<option value="Buton Selatan">Buton Selatan</option>';
+        KabupatenKota_options_str += '<option value="Buton Tengah">Buton Tengah</option>';
+        KabupatenKota_options_str += '<option value="Buton Utara">Buton Utara</option>';
+        KabupatenKota_options_str += '<option value="Ciamis">Ciamis</option>';
+        KabupatenKota_options_str += '<option value="Cianjur">Cianjur</option>';
+        KabupatenKota_options_str += '<option value="Cilacap">Cilacap</option>';
+        KabupatenKota_options_str += '<option value="Cirebon">Cirebon</option>';
+        KabupatenKota_options_str += '<option value="Dairi">Dairi</option>';
+        KabupatenKota_options_str += '<option value="Deiyai">Deiyai</option>';
+        KabupatenKota_options_str += '<option value="Deli Serdang">Deli Serdang</option>';
+        KabupatenKota_options_str += '<option value="Demak">Demak</option>';
+        KabupatenKota_options_str += '<option value="Dharmasraya">Dharmasraya</option>';
+        KabupatenKota_options_str += '<option value="Dogiyai">Dogiyai</option>';
+        KabupatenKota_options_str += '<option value="Dompu">Dompu</option>';
+        KabupatenKota_options_str += '<option value="Donggala">Donggala</option>';
+        KabupatenKota_options_str += '<option value="Empat Lawang">Empat Lawang</option>';
+        KabupatenKota_options_str += '<option value="Ende">Ende</option>';
+        KabupatenKota_options_str += '<option value="Enrekang">Enrekang</option>';
+        KabupatenKota_options_str += '<option value="Fak Fak">Fak Fak</option>';
+        KabupatenKota_options_str += '<option value="Flores Timur">Flores Timur</option>';
+        KabupatenKota_options_str += '<option value="Garut">Garut</option>';
+        KabupatenKota_options_str += '<option value="Gayo Lues">Gayo Lues</option>';
+        KabupatenKota_options_str += '<option value="Gianyar">Gianyar</option>';
+        KabupatenKota_options_str += '<option value="Gorontalo">Gorontalo</option>';
+        KabupatenKota_options_str += '<option value="Gorontalo Utara">Gorontalo Utara</option>';
+        KabupatenKota_options_str += '<option value="Gowa">Gowa</option>';
+        KabupatenKota_options_str += '<option value="Gresik">Gresik</option>';
+        KabupatenKota_options_str += '<option value="Grobogan">Grobogan</option>';
+        KabupatenKota_options_str += '<option value="Gunung Mas">Gunung Mas</option>';
+        KabupatenKota_options_str += '<option value="Gunungkidul">Gunungkidul</option>';
+        KabupatenKota_options_str += '<option value="Halmahera Barat">Halmahera Barat</option>';
+        KabupatenKota_options_str += '<option value="Halmahera Selatan">Halmahera Selatan</option>';
+        KabupatenKota_options_str += '<option value="Halmahera Tengah">Halmahera Tengah</option>';
+        KabupatenKota_options_str += '<option value="Halmahera Timur">Halmahera Timur</option>';
+        KabupatenKota_options_str += '<option value="Halmahera Utara">Halmahera Utara</option>';
+        KabupatenKota_options_str += '<option value="Hulu Sungai Selatan">Hulu Sungai Selatan</option>';
+        KabupatenKota_options_str += '<option value="Hulu Sungai Tengah">Hulu Sungai Tengah</option>';
+        KabupatenKota_options_str += '<option value="Hulu Sungai Utara">Hulu Sungai Utara</option>';
+        KabupatenKota_options_str += '<option value="Humbang Hasundutan">Humbang Hasundutan</option>';
+        KabupatenKota_options_str += '<option value="Indragiri Hilir">Indragiri Hilir</option>';
+        KabupatenKota_options_str += '<option value="Indragiri Hulu">Indragiri Hulu</option>';
+        KabupatenKota_options_str += '<option value="Indramayu">Indramayu</option>';
+        KabupatenKota_options_str += '<option value="Intan Jaya">Intan Jaya</option>';
+        KabupatenKota_options_str += '<option value="Jayapura">Jayapura</option>';
+        KabupatenKota_options_str += '<option value="Jayawijaya">Jayawijaya</option>';
+        KabupatenKota_options_str += '<option value="Jember">Jember</option>';
+        KabupatenKota_options_str += '<option value="Jembrana">Jembrana</option>';
+        KabupatenKota_options_str += '<option value="Jeneponto">Jeneponto</option>';
+        KabupatenKota_options_str += '<option value="Jepara">Jepara</option>';
+        KabupatenKota_options_str += '<option value="Jombang">Jombang</option>';
+        KabupatenKota_options_str += '<option value="Kaimana">Kaimana</option>';
+        KabupatenKota_options_str += '<option value="Kampar">Kampar</option>';
+        KabupatenKota_options_str += '<option value="Kapuas">Kapuas</option>';
+        KabupatenKota_options_str += '<option value="Kapuas Hulu">Kapuas Hulu</option>';
+        KabupatenKota_options_str += '<option value="Karanganyar">Karanganyar</option>';
+        KabupatenKota_options_str += '<option value="Karangasem">Karangasem</option>';
+        KabupatenKota_options_str += '<option value="Karawang">Karawang</option>';
+        KabupatenKota_options_str += '<option value="Karimun">Karimun</option>';
+        KabupatenKota_options_str += '<option value="Karo">Karo</option>';
+        KabupatenKota_options_str += '<option value="Katingan">Katingan</option>';
+        KabupatenKota_options_str += '<option value="Kaur">Kaur</option>';
+        KabupatenKota_options_str += '<option value="Kayong Utara">Kayong Utara</option>';
+        KabupatenKota_options_str += '<option value="Kebumen">Kebumen</option>';
+        KabupatenKota_options_str += '<option value="Kediri">Kediri</option>';
+        KabupatenKota_options_str += '<option value="Keerom">Keerom</option>';
+        KabupatenKota_options_str += '<option value="Kendal">Kendal</option>';
+        KabupatenKota_options_str += '<option value="Kep. Siau Tagulandang Biaro">Kep. Siau Tagulandang Biaro</option>';
+        KabupatenKota_options_str += '<option value="Kepahiang">Kepahiang</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Anambas">Kepulauan Anambas</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Aru">Kepulauan Aru</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Mentawai">Kepulauan Mentawai</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Meranti">Kepulauan Meranti</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Sangihe">Kepulauan Sangihe</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Selayar">Kepulauan Selayar</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Sula">Kepulauan Sula</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Talaud">Kepulauan Talaud</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Tanimbar">Kepulauan Tanimbar</option>';
+        KabupatenKota_options_str += '<option value="Kepulauan Yapen">Kepulauan Yapen</option>';
+        KabupatenKota_options_str += '<option value="Kerinci">Kerinci</option>';
+        KabupatenKota_options_str += '<option value="Ketapang">Ketapang</option>';
+        KabupatenKota_options_str += '<option value="Klaten">Klaten</option>';
+        KabupatenKota_options_str += '<option value="Klungkung">Klungkung</option>';
+        KabupatenKota_options_str += '<option value="Kolaka">Kolaka</option>';
+        KabupatenKota_options_str += '<option value="Kolaka Timur">Kolaka Timur</option>';
+        KabupatenKota_options_str += '<option value="Kolaka Utara">Kolaka Utara</option>';
+        KabupatenKota_options_str += '<option value="Konawe">Konawe</option>';
+        KabupatenKota_options_str += '<option value="Konawe Kepulauan">Konawe Kepulauan</option>';
+        KabupatenKota_options_str += '<option value="Konawe Selatan">Konawe Selatan</option>';
+        KabupatenKota_options_str += '<option value="Konawe Utara">Konawe Utara</option>';
+        KabupatenKota_options_str += '<option value="Kota Adm. Jakarta Barat">Kota Adm. Jakarta Barat</option>';
+        KabupatenKota_options_str += '<option value="Kota Adm. Jakarta Pusat">Kota Adm. Jakarta Pusat</option>';
+        KabupatenKota_options_str += '<option value="Kota Adm. Jakarta Selatan">Kota Adm. Jakarta Selatan</option>';
+        KabupatenKota_options_str += '<option value="Kota Adm. Jakarta Timur">Kota Adm. Jakarta Timur</option>';
+        KabupatenKota_options_str += '<option value="Kota Adm. Jakarta Utara">Kota Adm. Jakarta Utara</option>';
+        KabupatenKota_options_str += '<option value="Kota Ambon">Kota Ambon</option>';
+        KabupatenKota_options_str += '<option value="Kota Balikpapan">Kota Balikpapan</option>';
+        KabupatenKota_options_str += '<option value="Kota Banda Aceh">Kota Banda Aceh</option>';
+        KabupatenKota_options_str += '<option value="Kota Bandar Lampung">Kota Bandar Lampung</option>';
+        KabupatenKota_options_str += '<option value="Kota Bandung">Kota Bandung</option>';
+        KabupatenKota_options_str += '<option value="Kota Banjar">Kota Banjar</option>';
+        KabupatenKota_options_str += '<option value="Kota Banjarbaru">Kota Banjarbaru</option>';
+        KabupatenKota_options_str += '<option value="Kota Banjarmasin">Kota Banjarmasin</option>';
+        KabupatenKota_options_str += '<option value="Kota Batam">Kota Batam</option>';
+        KabupatenKota_options_str += '<option value="Kota Batu">Kota Batu</option>';
+        KabupatenKota_options_str += '<option value="Kota Bau Bau">Kota Bau Bau</option>';
+        KabupatenKota_options_str += '<option value="Kota Bekasi">Kota Bekasi</option>';
+        KabupatenKota_options_str += '<option value="Kota Bengkulu">Kota Bengkulu</option>';
+        KabupatenKota_options_str += '<option value="Kota Bima">Kota Bima</option>';
+        KabupatenKota_options_str += '<option value="Kota Binjai">Kota Binjai</option>';
+        KabupatenKota_options_str += '<option value="Kota Bitung">Kota Bitung</option>';
+        KabupatenKota_options_str += '<option value="Kota Blitar">Kota Blitar</option>';
+        KabupatenKota_options_str += '<option value="Kota Bogor">Kota Bogor</option>';
+        KabupatenKota_options_str += '<option value="Kota Bontang">Kota Bontang</option>';
+        KabupatenKota_options_str += '<option value="Kota Bukittinggi">Kota Bukittinggi</option>';
+        KabupatenKota_options_str += '<option value="Kota Cilegon">Kota Cilegon</option>';
+        KabupatenKota_options_str += '<option value="Kota Cimahi">Kota Cimahi</option>';
+        KabupatenKota_options_str += '<option value="Kota Cirebon">Kota Cirebon</option>';
+        KabupatenKota_options_str += '<option value="Kota Denpasar">Kota Denpasar</option>';
+        KabupatenKota_options_str += '<option value="Kota Depok">Kota Depok</option>';
+        KabupatenKota_options_str += '<option value="Kota Dumai">Kota Dumai</option>';
+        KabupatenKota_options_str += '<option value="Kota Gorontalo">Kota Gorontalo</option>';
+        KabupatenKota_options_str += '<option value="Kota Gunungsitoli">Kota Gunungsitoli</option>';
+        KabupatenKota_options_str += '<option value="Kota Jambi">Kota Jambi</option>';
+        KabupatenKota_options_str += '<option value="Kota Jayapura">Kota Jayapura</option>';
+        KabupatenKota_options_str += '<option value="Kota Kediri">Kota Kediri</option>';
+        KabupatenKota_options_str += '<option value="Kota Kendari">Kota Kendari</option>';
+        KabupatenKota_options_str += '<option value="Kota Kotamobagu">Kota Kotamobagu</option>';
+        KabupatenKota_options_str += '<option value="Kota Kupang">Kota Kupang</option>';
+        KabupatenKota_options_str += '<option value="Kota Langsa">Kota Langsa</option>';
+        KabupatenKota_options_str += '<option value="Kota Lhokseumawe">Kota Lhokseumawe</option>';
+        KabupatenKota_options_str += '<option value="Kota Lubuk Linggau">Kota Lubuk Linggau</option>';
+        KabupatenKota_options_str += '<option value="Kota Madiun">Kota Madiun</option>';
+        KabupatenKota_options_str += '<option value="Kota Magelang">Kota Magelang</option>';
+        KabupatenKota_options_str += '<option value="Kota Makassar">Kota Makassar</option>';
+        KabupatenKota_options_str += '<option value="Kota Malang">Kota Malang</option>';
+        KabupatenKota_options_str += '<option value="Kota Manado">Kota Manado</option>';
+        KabupatenKota_options_str += '<option value="Kota Mataram">Kota Mataram</option>';
+        KabupatenKota_options_str += '<option value="Kota Medan">Kota Medan</option>';
+        KabupatenKota_options_str += '<option value="Kota Metro">Kota Metro</option>';
+        KabupatenKota_options_str += '<option value="Kota Mojokerto">Kota Mojokerto</option>';
+        KabupatenKota_options_str += '<option value="Kota Padang">Kota Padang</option>';
+        KabupatenKota_options_str += '<option value="Kota Padang Panjang">Kota Padang Panjang</option>';
+        KabupatenKota_options_str += '<option value="Kota Padang Sidempuan">Kota Padang Sidempuan</option>';
+        KabupatenKota_options_str += '<option value="Kota Pagar Alam">Kota Pagar Alam</option>';
+        KabupatenKota_options_str += '<option value="Kota Palangkaraya">Kota Palangkaraya</option>';
+        KabupatenKota_options_str += '<option value="Kota Palembang">Kota Palembang</option>';
+        KabupatenKota_options_str += '<option value="Kota Palopo">Kota Palopo</option>';
+        KabupatenKota_options_str += '<option value="Kota Palu">Kota Palu</option>';
+        KabupatenKota_options_str += '<option value="Kota Pangkal Pinang">Kota Pangkal Pinang</option>';
+        KabupatenKota_options_str += '<option value="Kota Parepare">Kota Parepare</option>';
+        KabupatenKota_options_str += '<option value="Kota Pariaman">Kota Pariaman</option>';
+        KabupatenKota_options_str += '<option value="Kota Pasuruan">Kota Pasuruan</option>';
+        KabupatenKota_options_str += '<option value="Kota Payakumbuh">Kota Payakumbuh</option>';
+        KabupatenKota_options_str += '<option value="Kota Pekalongan">Kota Pekalongan</option>';
+        KabupatenKota_options_str += '<option value="Kota Pekanbaru">Kota Pekanbaru</option>';
+        KabupatenKota_options_str += '<option value="Kota Pematangsiantar">Kota Pematangsiantar</option>';
+        KabupatenKota_options_str += '<option value="Kota Pontianak">Kota Pontianak</option>';
+        KabupatenKota_options_str += '<option value="Kota Prabumulih">Kota Prabumulih</option>';
+        KabupatenKota_options_str += '<option value="Kota Probolinggo">Kota Probolinggo</option>';
+        KabupatenKota_options_str += '<option value="Kota Sabang">Kota Sabang</option>';
+        KabupatenKota_options_str += '<option value="Kota Salatiga">Kota Salatiga</option>';
+        KabupatenKota_options_str += '<option value="Kota Samarinda">Kota Samarinda</option>';
+        KabupatenKota_options_str += '<option value="Kota Sawahlunto">Kota Sawahlunto</option>';
+        KabupatenKota_options_str += '<option value="Kota Semarang">Kota Semarang</option>';
+        KabupatenKota_options_str += '<option value="Kota Serang">Kota Serang</option>';
+        KabupatenKota_options_str += '<option value="Kota Sibolga">Kota Sibolga</option>';
+        KabupatenKota_options_str += '<option value="Kota Singkawang">Kota Singkawang</option>';
+        KabupatenKota_options_str += '<option value="Kota Solok">Kota Solok</option>';
+        KabupatenKota_options_str += '<option value="Kota Sorong">Kota Sorong</option>';
+        KabupatenKota_options_str += '<option value="Kota Subulussalam">Kota Subulussalam</option>';
+        KabupatenKota_options_str += '<option value="Kota Sukabumi">Kota Sukabumi</option>';
+        KabupatenKota_options_str += '<option value="Kota Sungai Penuh">Kota Sungai Penuh</option>';
+        KabupatenKota_options_str += '<option value="Kota Surabaya">Kota Surabaya</option>';
+        KabupatenKota_options_str += '<option value="Kota Surakarta">Kota Surakarta</option>';
+        KabupatenKota_options_str += '<option value="Kota Tangerang">Kota Tangerang</option>';
+        KabupatenKota_options_str += '<option value="Kota Tangerang Selatan">Kota Tangerang Selatan</option>';
+        KabupatenKota_options_str += '<option value="Kota Tanjung Balai">Kota Tanjung Balai</option>';
+        KabupatenKota_options_str += '<option value="Kota Tanjung Pinang">Kota Tanjung Pinang</option>';
+        KabupatenKota_options_str += '<option value="Kota Tarakan">Kota Tarakan</option>';
+        KabupatenKota_options_str += '<option value="Kota Tasikmalaya">Kota Tasikmalaya</option>';
+        KabupatenKota_options_str += '<option value="Kota Tebing Tinggi">Kota Tebing Tinggi</option>';
+        KabupatenKota_options_str += '<option value="Kota Tegal">Kota Tegal</option>';
+        KabupatenKota_options_str += '<option value="Kota Ternate">Kota Ternate</option>';
+        KabupatenKota_options_str += '<option value="Kota Tidore Kepulauan">Kota Tidore Kepulauan</option>';
+        KabupatenKota_options_str += '<option value="Kota Tomohon">Kota Tomohon</option>';
+        KabupatenKota_options_str += '<option value="Kota Tual">Kota Tual</option>';
+        KabupatenKota_options_str += '<option value="Kota Yogyakarta">Kota Yogyakarta</option>';
+        KabupatenKota_options_str += '<option value="Kotabaru">Kotabaru</option>';
+        KabupatenKota_options_str += '<option value="Kotawaringin Barat">Kotawaringin Barat</option>';
+        KabupatenKota_options_str += '<option value="Kotawaringin Timur">Kotawaringin Timur</option>';
+        KabupatenKota_options_str += '<option value="Kuantan Singingi">Kuantan Singingi</option>';
+        KabupatenKota_options_str += '<option value="Kubu Raya">Kubu Raya</option>';
+        KabupatenKota_options_str += '<option value="Kudus">Kudus</option>';
+        KabupatenKota_options_str += '<option value="Kulon Progo">Kulon Progo</option>';
+        KabupatenKota_options_str += '<option value="Kuningan">Kuningan</option>';
+        KabupatenKota_options_str += '<option value="Kupang">Kupang</option>';
+        KabupatenKota_options_str += '<option value="Kutai Barat">Kutai Barat</option>';
+        KabupatenKota_options_str += '<option value="Kutai Kartanegara">Kutai Kartanegara</option>';
+        KabupatenKota_options_str += '<option value="Kutai Timur">Kutai Timur</option>';
+        KabupatenKota_options_str += '<option value="Labuhanbatu">Labuhanbatu</option>';
+        KabupatenKota_options_str += '<option value="Labuhanbatu Selatan">Labuhanbatu Selatan</option>';
+        KabupatenKota_options_str += '<option value="Labuhanbatu Utara">Labuhanbatu Utara</option>';
+        KabupatenKota_options_str += '<option value="Lahat">Lahat</option>';
+        KabupatenKota_options_str += '<option value="Lamandau">Lamandau</option>';
+        KabupatenKota_options_str += '<option value="Lamongan">Lamongan</option>';
+        KabupatenKota_options_str += '<option value="Lampung Barat">Lampung Barat</option>';
+        KabupatenKota_options_str += '<option value="Lampung Selatan">Lampung Selatan</option>';
+        KabupatenKota_options_str += '<option value="Lampung Tengah">Lampung Tengah</option>';
+        KabupatenKota_options_str += '<option value="Lampung Timur">Lampung Timur</option>';
+        KabupatenKota_options_str += '<option value="Lampung Utara">Lampung Utara</option>';
+        KabupatenKota_options_str += '<option value="Landak">Landak</option>';
+        KabupatenKota_options_str += '<option value="Langkat">Langkat</option>';
+        KabupatenKota_options_str += '<option value="Lanny Jaya">Lanny Jaya</option>';
+        KabupatenKota_options_str += '<option value="Lebak">Lebak</option>';
+        KabupatenKota_options_str += '<option value="Lebong">Lebong</option>';
+        KabupatenKota_options_str += '<option value="Lembata">Lembata</option>';
+        KabupatenKota_options_str += '<option value="Lima Puluh Kota">Lima Puluh Kota</option>';
+        KabupatenKota_options_str += '<option value="Lingga">Lingga</option>';
+        KabupatenKota_options_str += '<option value="Lombok Barat">Lombok Barat</option>';
+        KabupatenKota_options_str += '<option value="Lombok Tengah">Lombok Tengah</option>';
+        KabupatenKota_options_str += '<option value="Lombok Timur">Lombok Timur</option>';
+        KabupatenKota_options_str += '<option value="Lombok Utara">Lombok Utara</option>';
+        KabupatenKota_options_str += '<option value="Lumajang">Lumajang</option>';
+        KabupatenKota_options_str += '<option value="Luwu">Luwu</option>';
+        KabupatenKota_options_str += '<option value="Luwu Timur">Luwu Timur</option>';
+        KabupatenKota_options_str += '<option value="Luwu Utara">Luwu Utara</option>';
+        KabupatenKota_options_str += '<option value="Madiun">Madiun</option>';
+        KabupatenKota_options_str += '<option value="Magelang">Magelang</option>';
+        KabupatenKota_options_str += '<option value="Magetan">Magetan</option>';
+        KabupatenKota_options_str += '<option value="Mahakam Ulu">Mahakam Ulu</option>';
+        KabupatenKota_options_str += '<option value="Majalengka">Majalengka</option>';
+        KabupatenKota_options_str += '<option value="Majene">Majene</option>';
+        KabupatenKota_options_str += '<option value="Malaka">Malaka</option>';
+        KabupatenKota_options_str += '<option value="Malang">Malang</option>';
+        KabupatenKota_options_str += '<option value="Malinau">Malinau</option>';
+        KabupatenKota_options_str += '<option value="Maluku Barat Daya">Maluku Barat Daya</option>';
+        KabupatenKota_options_str += '<option value="Maluku Tengah">Maluku Tengah</option>';
+        KabupatenKota_options_str += '<option value="Maluku Tenggara">Maluku Tenggara</option>';
+        KabupatenKota_options_str += '<option value="Mamasa">Mamasa</option>';
+        KabupatenKota_options_str += '<option value="Mamberamo Raya">Mamberamo Raya</option>';
+        KabupatenKota_options_str += '<option value="Mamberamo Tengah">Mamberamo Tengah</option>';
+        KabupatenKota_options_str += '<option value="Mamuju">Mamuju</option>';
+        KabupatenKota_options_str += '<option value="Mamuju Tengah">Mamuju Tengah</option>';
+        KabupatenKota_options_str += '<option value="Mandailing Natal">Mandailing Natal</option>';
+        KabupatenKota_options_str += '<option value="Manggarai">Manggarai</option>';
+        KabupatenKota_options_str += '<option value="Manggarai Barat">Manggarai Barat</option>';
+        KabupatenKota_options_str += '<option value="Manggarai Timur">Manggarai Timur</option>';
+        KabupatenKota_options_str += '<option value="Manokwari">Manokwari</option>';
+        KabupatenKota_options_str += '<option value="Manokwari Selatan">Manokwari Selatan</option>';
+        KabupatenKota_options_str += '<option value="Mappi">Mappi</option>';
+        KabupatenKota_options_str += '<option value="Maros">Maros</option>';
+        KabupatenKota_options_str += '<option value="Maybrat">Maybrat</option>';
+        KabupatenKota_options_str += '<option value="Melawi">Melawi</option>';
+        KabupatenKota_options_str += '<option value="Mempawah">Mempawah</option>';
+        KabupatenKota_options_str += '<option value="Merangin">Merangin</option>';
+        KabupatenKota_options_str += '<option value="Merauke">Merauke</option>';
+        KabupatenKota_options_str += '<option value="Mesuji">Mesuji</option>';
+        KabupatenKota_options_str += '<option value="Mimika">Mimika</option>';
+        KabupatenKota_options_str += '<option value="Minahasa">Minahasa</option>';
+        KabupatenKota_options_str += '<option value="Minahasa Selatan">Minahasa Selatan</option>';
+        KabupatenKota_options_str += '<option value="Minahasa Selatan/Bolaang Mongondwo Timur">Minahasa Selatan/Bolaang Mongondwo Timur</option>';
+        KabupatenKota_options_str += '<option value="Minahasa Tenggara">Minahasa Tenggara</option>';
+        KabupatenKota_options_str += '<option value="Minahasa Utara">Minahasa Utara</option>';
+        KabupatenKota_options_str += '<option value="Mojokerto">Mojokerto</option>';
+        KabupatenKota_options_str += '<option value="Morowali">Morowali</option>';
+        KabupatenKota_options_str += '<option value="Morowali Utara">Morowali Utara</option>';
+        KabupatenKota_options_str += '<option value="Muara Enim">Muara Enim</option>';
+        KabupatenKota_options_str += '<option value="Muaro Jambi">Muaro Jambi</option>';
+        KabupatenKota_options_str += '<option value="Muko Muko">Muko Muko</option>';
+        KabupatenKota_options_str += '<option value="Muna">Muna</option>';
+        KabupatenKota_options_str += '<option value="Muna Barat">Muna Barat</option>';
+        KabupatenKota_options_str += '<option value="Murung Raya">Murung Raya</option>';
+        KabupatenKota_options_str += '<option value="Musi Banyuasin">Musi Banyuasin</option>';
+        KabupatenKota_options_str += '<option value="Musi Rawas">Musi Rawas</option>';
+        KabupatenKota_options_str += '<option value="Musi Rawas Utara">Musi Rawas Utara</option>';
+        KabupatenKota_options_str += '<option value="Nabire">Nabire</option>';
+        KabupatenKota_options_str += '<option value="Nagan Raya">Nagan Raya</option>';
+        KabupatenKota_options_str += '<option value="Nagekeo">Nagekeo</option>';
+        KabupatenKota_options_str += '<option value="Natuna">Natuna</option>';
+        KabupatenKota_options_str += '<option value="Nduga">Nduga</option>';
+        KabupatenKota_options_str += '<option value="Ngada">Ngada</option>';
+        KabupatenKota_options_str += '<option value="Nganjuk">Nganjuk</option>';
+        KabupatenKota_options_str += '<option value="Ngawi">Ngawi</option>';
+        KabupatenKota_options_str += '<option value="Nias">Nias</option>';
+        KabupatenKota_options_str += '<option value="Nias Barat">Nias Barat</option>';
+        KabupatenKota_options_str += '<option value="Nias Selatan">Nias Selatan</option>';
+        KabupatenKota_options_str += '<option value="Nias Utara">Nias Utara</option>';
+        KabupatenKota_options_str += '<option value="Nunukan">Nunukan</option>';
+        KabupatenKota_options_str += '<option value="Ogan Ilir">Ogan Ilir</option>';
+        KabupatenKota_options_str += '<option value="Ogan Komering Ilir">Ogan Komering Ilir</option>';
+        KabupatenKota_options_str += '<option value="Ogan Komering Ulu">Ogan Komering Ulu</option>';
+        KabupatenKota_options_str += '<option value="Ogan Komering Ulu Selatan">Ogan Komering Ulu Selatan</option>';
+        KabupatenKota_options_str += '<option value="Ogan Komering Ulu Timur">Ogan Komering Ulu Timur</option>';
+        KabupatenKota_options_str += '<option value="Pacitan">Pacitan</option>';
+        KabupatenKota_options_str += '<option value="Padang Lawas">Padang Lawas</option>';
+        KabupatenKota_options_str += '<option value="Padang Lawas Utara">Padang Lawas Utara</option>';
+        KabupatenKota_options_str += '<option value="Padang Pariaman">Padang Pariaman</option>';
+        KabupatenKota_options_str += '<option value="Pakpak Bharat">Pakpak Bharat</option>';
+        KabupatenKota_options_str += '<option value="Pamekasan">Pamekasan</option>';
+        KabupatenKota_options_str += '<option value="Pandeglang">Pandeglang</option>';
+        KabupatenKota_options_str += '<option value="Pangandaran">Pangandaran</option>';
+        KabupatenKota_options_str += '<option value="Pangkajene Dan Kepulauan">Pangkajene Dan Kepulauan</option>';
+        KabupatenKota_options_str += '<option value="Paniai">Paniai</option>';
+        KabupatenKota_options_str += '<option value="Parigi Moutong">Parigi Moutong</option>';
+        KabupatenKota_options_str += '<option value="Pasaman">Pasaman</option>';
+        KabupatenKota_options_str += '<option value="Pasaman Barat">Pasaman Barat</option>';
+        KabupatenKota_options_str += '<option value="Pasangkayu">Pasangkayu</option>';
+        KabupatenKota_options_str += '<option value="Paser">Paser</option>';
+        KabupatenKota_options_str += '<option value="Pasuruan">Pasuruan</option>';
+        KabupatenKota_options_str += '<option value="Pati">Pati</option>';
+        KabupatenKota_options_str += '<option value="Pegunungan Arfak">Pegunungan Arfak</option>';
+        KabupatenKota_options_str += '<option value="Pegunungan Bintang">Pegunungan Bintang</option>';
+        KabupatenKota_options_str += '<option value="Pekalongan">Pekalongan</option>';
+        KabupatenKota_options_str += '<option value="Pelalawan">Pelalawan</option>';
+        KabupatenKota_options_str += '<option value="Pemalang">Pemalang</option>';
+        KabupatenKota_options_str += '<option value="Penajam Paser Utara">Penajam Paser Utara</option>';
+        KabupatenKota_options_str += '<option value="Penukal Abab Lematang Ilir">Penukal Abab Lematang Ilir</option>';
+        KabupatenKota_options_str += '<option value="Pesawaran">Pesawaran</option>';
+        KabupatenKota_options_str += '<option value="Pesisir Barat">Pesisir Barat</option>';
+        KabupatenKota_options_str += '<option value="Pesisir Selatan">Pesisir Selatan</option>';
+        KabupatenKota_options_str += '<option value="Pidie">Pidie</option>';
+        KabupatenKota_options_str += '<option value="Pidie Jaya">Pidie Jaya</option>';
+        KabupatenKota_options_str += '<option value="Pinrang">Pinrang</option>';
+        KabupatenKota_options_str += '<option value="Pohuwato">Pohuwato</option>';
+        KabupatenKota_options_str += '<option value="Polewali Mandar">Polewali Mandar</option>';
+        KabupatenKota_options_str += '<option value="Ponorogo">Ponorogo</option>';
+        KabupatenKota_options_str += '<option value="Poso">Poso</option>';
+        KabupatenKota_options_str += '<option value="Pringsewu">Pringsewu</option>';
+        KabupatenKota_options_str += '<option value="Probolinggo">Probolinggo</option>';
+        KabupatenKota_options_str += '<option value="Pulang Pisau">Pulang Pisau</option>';
+        KabupatenKota_options_str += '<option value="Pulau Morotai">Pulau Morotai</option>';
+        KabupatenKota_options_str += '<option value="Pulau Taliabu">Pulau Taliabu</option>';
+        KabupatenKota_options_str += '<option value="Puncak">Puncak</option>';
+        KabupatenKota_options_str += '<option value="Puncak Jaya">Puncak Jaya</option>';
+        KabupatenKota_options_str += '<option value="Purbalingga">Purbalingga</option>';
+        KabupatenKota_options_str += '<option value="Purwakarta">Purwakarta</option>';
+        KabupatenKota_options_str += '<option value="Purworejo">Purworejo</option>';
+        KabupatenKota_options_str += '<option value="Raja Ampat">Raja Ampat</option>';
+        KabupatenKota_options_str += '<option value="Rejang Lebong">Rejang Lebong</option>';
+        KabupatenKota_options_str += '<option value="Rembang">Rembang</option>';
+        KabupatenKota_options_str += '<option value="Rokan Hilir">Rokan Hilir</option>';
+        KabupatenKota_options_str += '<option value="Rokan Hulu">Rokan Hulu</option>';
+        KabupatenKota_options_str += '<option value="Rote Ndao">Rote Ndao</option>';
+        KabupatenKota_options_str += '<option value="Sabu Raijua">Sabu Raijua</option>';
+        KabupatenKota_options_str += '<option value="Sambas">Sambas</option>';
+        KabupatenKota_options_str += '<option value="Samosir">Samosir</option>';
+        KabupatenKota_options_str += '<option value="Sampang">Sampang</option>';
+        KabupatenKota_options_str += '<option value="Sanggau">Sanggau</option>';
+        KabupatenKota_options_str += '<option value="Sarmi">Sarmi</option>';
+        KabupatenKota_options_str += '<option value="Sarolangun">Sarolangun</option>';
+        KabupatenKota_options_str += '<option value="Sekadau">Sekadau</option>';
+        KabupatenKota_options_str += '<option value="Seluma">Seluma</option>';
+        KabupatenKota_options_str += '<option value="Semarang">Semarang</option>';
+        KabupatenKota_options_str += '<option value="Seram Bagian Barat">Seram Bagian Barat</option>';
+        KabupatenKota_options_str += '<option value="Seram Bagian Timur">Seram Bagian Timur</option>';
+        KabupatenKota_options_str += '<option value="Serang">Serang</option>';
+        KabupatenKota_options_str += '<option value="Serdang Bedagai">Serdang Bedagai</option>';
+        KabupatenKota_options_str += '<option value="Seruyan">Seruyan</option>';
+        KabupatenKota_options_str += '<option value="Siak">Siak</option>';
+        KabupatenKota_options_str += '<option value="Sidenreng Rappang">Sidenreng Rappang</option>';
+        KabupatenKota_options_str += '<option value="Sidoarjo">Sidoarjo</option>';
+        KabupatenKota_options_str += '<option value="Sigi">Sigi</option>';
+        KabupatenKota_options_str += '<option value="Sijunjung">Sijunjung</option>';
+        KabupatenKota_options_str += '<option value="Sikka">Sikka</option>';
+        KabupatenKota_options_str += '<option value="Simalungun">Simalungun</option>';
+        KabupatenKota_options_str += '<option value="Simeulue">Simeulue</option>';
+        KabupatenKota_options_str += '<option value="Sinjai">Sinjai</option>';
+        KabupatenKota_options_str += '<option value="Sintang">Sintang</option>';
+        KabupatenKota_options_str += '<option value="Situbondo">Situbondo</option>';
+        KabupatenKota_options_str += '<option value="Sleman">Sleman</option>';
+        KabupatenKota_options_str += '<option value="Solok">Solok</option>';
+        KabupatenKota_options_str += '<option value="Solok Selatan">Solok Selatan</option>';
+        KabupatenKota_options_str += '<option value="Soppeng">Soppeng</option>';
+        KabupatenKota_options_str += '<option value="Sorong">Sorong</option>';
+        KabupatenKota_options_str += '<option value="Sorong Selatan">Sorong Selatan</option>';
+        KabupatenKota_options_str += '<option value="Sragen">Sragen</option>';
+        KabupatenKota_options_str += '<option value="Subang">Subang</option>';
+        KabupatenKota_options_str += '<option value="Sukabumi">Sukabumi</option>';
+        KabupatenKota_options_str += '<option value="Sukamara">Sukamara</option>';
+        KabupatenKota_options_str += '<option value="Sukoharjo">Sukoharjo</option>';
+        KabupatenKota_options_str += '<option value="Sumba Barat">Sumba Barat</option>';
+        KabupatenKota_options_str += '<option value="Sumba Barat Daya">Sumba Barat Daya</option>';
+        KabupatenKota_options_str += '<option value="Sumba Tengah">Sumba Tengah</option>';
+        KabupatenKota_options_str += '<option value="Sumba Timur">Sumba Timur</option>';
+        KabupatenKota_options_str += '<option value="Sumbawa">Sumbawa</option>';
+        KabupatenKota_options_str += '<option value="Sumbawa Barat">Sumbawa Barat</option>';
+        KabupatenKota_options_str += '<option value="Sumedang">Sumedang</option>';
+        KabupatenKota_options_str += '<option value="Sumenep">Sumenep</option>';
+        KabupatenKota_options_str += '<option value="Supiori">Supiori</option>';
+        KabupatenKota_options_str += '<option value="Tabalong">Tabalong</option>';
+        KabupatenKota_options_str += '<option value="Tabanan">Tabanan</option>';
+        KabupatenKota_options_str += '<option value="Takalar">Takalar</option>';
+        KabupatenKota_options_str += '<option value="Tambrauw">Tambrauw</option>';
+        KabupatenKota_options_str += '<option value="Tana Tidung">Tana Tidung</option>';
+        KabupatenKota_options_str += '<option value="Tana Toraja">Tana Toraja</option>';
+        KabupatenKota_options_str += '<option value="Tanah Bumbu">Tanah Bumbu</option>';
+        KabupatenKota_options_str += '<option value="Tanah Datar">Tanah Datar</option>';
+        KabupatenKota_options_str += '<option value="Tanah Laut">Tanah Laut</option>';
+        KabupatenKota_options_str += '<option value="Tangerang">Tangerang</option>';
+        KabupatenKota_options_str += '<option value="Tanggamus">Tanggamus</option>';
+        KabupatenKota_options_str += '<option value="Tanjung Jabung Barat">Tanjung Jabung Barat</option>';
+        KabupatenKota_options_str += '<option value="Tanjung Jabung Timur">Tanjung Jabung Timur</option>';
+        KabupatenKota_options_str += '<option value="Tapanuli Selatan">Tapanuli Selatan</option>';
+        KabupatenKota_options_str += '<option value="Tapanuli Tengah">Tapanuli Tengah</option>';
+        KabupatenKota_options_str += '<option value="Tapanuli Utara">Tapanuli Utara</option>';
+        KabupatenKota_options_str += '<option value="Tapin">Tapin</option>';
+        KabupatenKota_options_str += '<option value="Tasikmalaya">Tasikmalaya</option>';
+        KabupatenKota_options_str += '<option value="Tebo">Tebo</option>';
+        KabupatenKota_options_str += '<option value="Tegal">Tegal</option>';
+        KabupatenKota_options_str += '<option value="Teluk Bintuni">Teluk Bintuni</option>';
+        KabupatenKota_options_str += '<option value="Teluk Wondama">Teluk Wondama</option>';
+        KabupatenKota_options_str += '<option value="Temanggung">Temanggung</option>';
+        KabupatenKota_options_str += '<option value="Timor Tengah Selatan">Timor Tengah Selatan</option>';
+        KabupatenKota_options_str += '<option value="Timor Tengah Utara">Timor Tengah Utara</option>';
+        KabupatenKota_options_str += '<option value="Toba">Toba</option>';
+        KabupatenKota_options_str += '<option value="Tojo Una Una">Tojo Una Una</option>';
+        KabupatenKota_options_str += '<option value="Toli Toli">Toli Toli</option>';
+        KabupatenKota_options_str += '<option value="Tolikara">Tolikara</option>';
+        KabupatenKota_options_str += '<option value="Toraja Utara">Toraja Utara</option>';
+        KabupatenKota_options_str += '<option value="Trenggalek">Trenggalek</option>';
+        KabupatenKota_options_str += '<option value="Tuban">Tuban</option>';
+        KabupatenKota_options_str += '<option value="Tulang Bawang">Tulang Bawang</option>';
+        KabupatenKota_options_str += '<option value="Tulang Bawang Barat">Tulang Bawang Barat</option>';
+        KabupatenKota_options_str += '<option value="Tulungagung">Tulungagung</option>';
+        KabupatenKota_options_str += '<option value="Wajo">Wajo</option>';
+        KabupatenKota_options_str += '<option value="Wakatobi">Wakatobi</option>';
+        KabupatenKota_options_str += '<option value="Waropen">Waropen</option>';
+        KabupatenKota_options_str += '<option value="Way Kanan">Way Kanan</option>';
+        KabupatenKota_options_str += '<option value="Wonogiri">Wonogiri</option>';
+        KabupatenKota_options_str += '<option value="Wonosobo">Wonosobo</option>';
+        KabupatenKota_options_str += '<option value="Yahukimo">Yahukimo</option>';
+        KabupatenKota_options_str += '<option value="Yalimo">Yalimo</option>';
+        sel_KabupatenKota.innerHTML = KabupatenKota_options_str;
+        div_KabupatenKota.appendChild(sel_KabupatenKota);
+        var lab_KabupatenKota = document.createElement('div');
+        lab_KabupatenKota.innerHTML = 'Kabupaten/Kota';
+        lab_KabupatenKota.className = 'filterlabel';
+        div_KabupatenKota.appendChild(lab_KabupatenKota);
+        var reset_KabupatenKota = document.createElement('div');
+        reset_KabupatenKota.innerHTML = 'clear filter';
+        reset_KabupatenKota.className = 'filterlabel';
+        reset_KabupatenKota.onclick = function () {
+            var options = document.getElementById("sel_KabupatenKota").options;
+            for (var i = 0; i < options.length; i++) {
+                options[i].selected = false;
+            }
+            filterFunc();
+        };
+        div_KabupatenKota.appendChild(reset_KabupatenKota);
+
+        var overlayLayers = {
+            "Risiko 2023": layer_Risiko2023_3,
+            "Risiko 2030": layer_Risiko2030_2,
+            "Kerentanan 2023": layer_Kerentanan2023_5,
+            "Kerentanan 2030": layer_Kerentanan2030_4,
+            "F4 Map - 2D": layer_F4Map2D_1,
+            "Google Maps": layer_GoogleMaps_0
+        };
+
+        // Tambahkan kontrol layer ke dalam peta
+        L.control.layers(null, overlayLayers, { collapsed: false }).addTo(map);
+    </script>
+</body>
+
+</html>
